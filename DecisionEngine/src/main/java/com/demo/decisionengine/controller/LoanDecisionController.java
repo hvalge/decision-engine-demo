@@ -1,9 +1,10 @@
 package com.demo.decisionengine.controller;
 
+import com.demo.decisionengine.dto.LoanDecisionDto;
+import com.demo.decisionengine.dto.LoanInputDto;
 import com.demo.decisionengine.service.LoanDecisionService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/loan/decision")
@@ -15,8 +16,8 @@ public class LoanDecisionController {
         this.loanDecisionService = loanDecisionService;
     }
 
-    @GetMapping
-    public Object getLoanDecision() {
-        return "123";
+    @PostMapping
+    public LoanDecisionDto getLoanDecision(@RequestBody @Valid LoanInputDto loanInputDto) {
+        return loanDecisionService.getLoanDecision(loanInputDto);
     }
 }
