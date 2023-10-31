@@ -5,6 +5,8 @@ import com.demo.decisionengine.constants.UserCreditStatus;
 import com.demo.decisionengine.dto.LoanDecisionDto;
 import com.demo.decisionengine.dto.LoanInputDto;
 import com.demo.decisionengine.dto.UserCreditProfileDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,6 +17,7 @@ import static com.demo.decisionengine.constants.LoanConstraintConstants.*;
 @Service
 public class LoanDecisionService {
 
+    private static final Logger logger = LoggerFactory.getLogger(LoanDecisionService.class);
     private final UserCreditProfileComposerMockService userProfileComposerMock;
 
     public LoanDecisionService(UserCreditProfileComposerMockService userCreditProfileComposerMockService) {
@@ -22,25 +25,31 @@ public class LoanDecisionService {
     }
 
     public LoanDecisionDto getLoanDecision(LoanInputDto loanInputDto) {
+        logger.info("Starting loan decision process for input: {}", loanInputDto);
         UserCreditProfileDto userCreditProfile = userProfileComposerMock.getUserCreditModifier(loanInputDto.getPersonalCode());
 
         if (userCreditProfile.getUserCreditStatus() == UserCreditStatus.ELIGIBLE) {
             double creditScore = calculateCreditScore(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(),
                     loanInputDto.getLoanPeriodInMonths());
+            LoanDecisionDto decision;
             if (creditScore >= 1) {
-                return calculateMaxApprovableAmountIfPossible(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(),
+                decision = calculateMaxApprovableAmountIfPossible(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(),
                         loanInputDto.getLoanPeriodInMonths());
+                logger.info("Loan decision for personal code {}: {}", loanInputDto.getPersonalCode(), decision);
             } else {
-                LoanDecisionDto decision = calculateMinApprovableAmountIfPossible(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(), loanInputDto.getLoanPeriodInMonths());
+                decision = calculateMinApprovableAmountIfPossible(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(), loanInputDto.getLoanPeriodInMonths());
 
                 if (decision.getDecision() == LoanDecision.DECLINED) {
                     return adjustLoanPeriodForApprovalIfPossible(userCreditProfile.getCreditModifier(), MIN_LOAN_AMOUNT, loanInputDto.getLoanPeriodInMonths());
                 }
-                return decision;
 
             }
+            logger.info("Loan decision for personal code {}: {}", loanInputDto.getPersonalCode(), decision);
+            return decision;
         } else {
-            return new LoanDecisionDto(LoanDecision.DECLINED, loanInputDto.getLoanAmount(), loanInputDto.getLoanPeriodInMonths());
+            LoanDecisionDto decision = new LoanDecisionDto(LoanDecision.DECLINED, loanInputDto.getLoanAmount(), loanInputDto.getLoanPeriodInMonths());
+            logger.info("Loan decision for personal code {}: {}", loanInputDto.getPersonalCode(), decision);
+            return decision;
         }
 
     }

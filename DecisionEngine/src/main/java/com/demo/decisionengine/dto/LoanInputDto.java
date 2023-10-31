@@ -15,12 +15,12 @@ public class LoanInputDto {
     @Length(min = 1, max = 32)
     private String personalCode;
 
-    @Min(value = 200000, message = "The minimum loan amount is 200000.")
-    @Max(value = 1000000, message = "The maximum loan amount is 100000.")
+    @Min(value = 200000, message = "the minimum loan amount is 200000 cents")
+    @Max(value = 1000000, message = "the maximum loan amount is 1000000 cents")
     private int loanAmount;
 
-    @Min(value = 12, message = "The minimum loan period is 12 months.")
-    @Max(value = 60, message = "The maximum loan amount is 60 months.")
+    @Min(value = 12, message = "the minimum loan period is 12 months")
+    @Max(value = 60, message = "the maximum loan amount is 60 months")
     private int loanPeriodInMonths;
 
 }
