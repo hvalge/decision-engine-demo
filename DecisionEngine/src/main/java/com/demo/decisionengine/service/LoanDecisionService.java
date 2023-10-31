@@ -10,14 +10,10 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import static com.demo.decisionengine.constants.LoanConstraintConstants.*;
+
 @Service
 public class LoanDecisionService {
-
-    private static final int MIN_LOAN_AMOUNT = 200000;
-    private static final int MAX_LOAN_AMOUNT = 1000000;
-    private static final int LOAN_AMOUNT_INCREMENT = 10000;
-    private static final int MAX_LOAN_PERIOD_IN_MONTHS = 60;
-    private static final int LOAN_PERIOD_INCREMENT = 1;
 
     private final UserCreditProfileComposerMockService userProfileComposerMock;
 
@@ -32,13 +28,13 @@ public class LoanDecisionService {
             double creditScore = calculateCreditScore(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(),
                     loanInputDto.getLoanPeriodInMonths());
             if (creditScore >= 1) {
-                return calculateMaxApprovableAmount(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(),
+                return calculateMaxApprovableAmountIfPossible(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(),
                         loanInputDto.getLoanPeriodInMonths());
             } else {
-                LoanDecisionDto decision = calculateMinApprovableAmount(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(), loanInputDto.getLoanPeriodInMonths());
+                LoanDecisionDto decision = calculateMinApprovableAmountIfPossible(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(), loanInputDto.getLoanPeriodInMonths());
 
                 if (decision.getDecision() == LoanDecision.DECLINED) {
-                    return adjustLoanPeriodForApproval(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(), loanInputDto.getLoanPeriodInMonths());
+                    return adjustLoanPeriodForApprovalIfPossible(userCreditProfile.getCreditModifier(), MIN_LOAN_AMOUNT, loanInputDto.getLoanPeriodInMonths());
                 }
                 return decision;
 
@@ -59,7 +55,7 @@ public class LoanDecisionService {
         return score.doubleValue();
     }
 
-    private LoanDecisionDto calculateMaxApprovableAmount(int creditModifier, int loanAmount, int loanPeriodInMonths) {
+    private LoanDecisionDto calculateMaxApprovableAmountIfPossible(int creditModifier, int loanAmount, int loanPeriodInMonths) {
         while (loanAmount + LOAN_AMOUNT_INCREMENT <= MAX_LOAN_AMOUNT) {
             loanAmount += LOAN_AMOUNT_INCREMENT;
             double currentScore = calculateCreditScore(creditModifier, loanAmount, loanPeriodInMonths);
@@ -71,7 +67,7 @@ public class LoanDecisionService {
         return new LoanDecisionDto(LoanDecision.APPROVED, Math.min(loanAmount, MAX_LOAN_AMOUNT), loanPeriodInMonths);
     }
 
-    private LoanDecisionDto calculateMinApprovableAmount(int creditModifier, int loanAmount, int loanPeriodInMonths) {
+    private LoanDecisionDto calculateMinApprovableAmountIfPossible(int creditModifier, int loanAmount, int loanPeriodInMonths) {
         while (loanAmount - LOAN_AMOUNT_INCREMENT >= MIN_LOAN_AMOUNT) {
             loanAmount -= LOAN_AMOUNT_INCREMENT;
             double creditScore = calculateCreditScore(creditModifier, loanAmount, loanPeriodInMonths);
@@ -82,8 +78,8 @@ public class LoanDecisionService {
         return new LoanDecisionDto(LoanDecision.DECLINED, loanAmount, loanPeriodInMonths);
     }
 
-    private LoanDecisionDto adjustLoanPeriodForApproval(int creditModifier, int loanAmount, int loanPeriodInMonths) {
-        while (loanPeriodInMonths + LOAN_PERIOD_INCREMENT >= MAX_LOAN_PERIOD_IN_MONTHS) {
+    private LoanDecisionDto adjustLoanPeriodForApprovalIfPossible(int creditModifier, int loanAmount, int loanPeriodInMonths) {
+        while (loanPeriodInMonths + LOAN_PERIOD_INCREMENT < MAX_LOAN_PERIOD_IN_MONTHS) {
             loanPeriodInMonths += LOAN_PERIOD_INCREMENT;
             double creditScore = calculateCreditScore(creditModifier, loanAmount, loanPeriodInMonths);
             if (creditScore >= 1) {
