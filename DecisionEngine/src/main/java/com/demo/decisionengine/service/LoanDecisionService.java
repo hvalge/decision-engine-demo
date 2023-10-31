@@ -35,7 +35,6 @@ public class LoanDecisionService {
             if (creditScore >= 1) {
                 decision = calculateMaxApprovableAmountIfPossible(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(),
                         loanInputDto.getLoanPeriodInMonths());
-                logger.info("Loan decision for personal code {}: {}", loanInputDto.getPersonalCode(), decision);
             } else {
                 decision = calculateMinApprovableAmountIfPossible(userCreditProfile.getCreditModifier(), loanInputDto.getLoanAmount(), loanInputDto.getLoanPeriodInMonths());
 
