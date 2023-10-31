@@ -47,7 +47,7 @@ public class LoanDecisionService {
             logger.info("Loan decision for personal code {}: {}", loanInputDto.getPersonalCode(), decision);
             return decision;
         } else {
-            LoanDecisionDto decision = new LoanDecisionDto(LoanDecision.DECLINED, loanInputDto.getLoanAmount(), loanInputDto.getLoanPeriodInMonths());
+            LoanDecisionDto decision = new LoanDecisionDto(LoanDecision.DECLINED, 0, 0);
             logger.info("Loan decision for personal code {}: {}", loanInputDto.getPersonalCode(), decision);
             return decision;
         }
@@ -95,7 +95,7 @@ public class LoanDecisionService {
                 return new LoanDecisionDto(LoanDecision.APPROVED, loanAmount, loanPeriodInMonths);
             }
         }
-        return new LoanDecisionDto(LoanDecision.DECLINED, loanAmount, loanPeriodInMonths);
+        return new LoanDecisionDto(LoanDecision.DECLINED, 0, 0);
     }
 
 }

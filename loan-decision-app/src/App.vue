@@ -13,17 +13,24 @@
     </div>
     
     <div>
-      <label for="loanPeriod">Loan Period (Months):</label>
-      <input v-model.number="loanApplication.loanPeriod" type="number" id="loanPeriod" />
+      <label for="loanPeriodInMonths">Loan Period (Months):</label>
+      <input v-model.number="loanApplication.loanPeriodInMonths" type="number" id="loanPeriodInMonths" />
     </div>
     
     <button @click="submitApplication">Submit Application</button>
 
+    <div v-if="validationErrors.length" class="error-messages">
+      <p>Please correct the following errors:</p>
+      <ul>
+        <li v-for="error in validationErrors" :key="error">{{ error }}</li>
+      </ul>
+    </div>
+    
     <h2>Decision</h2>
     <div v-if="decision">
       Decision: {{ decision.decision }}
       <div v-if="decision.decision === 'APPROVED'">
-        Approved Amount: €{{ decision.approvedAmount }}
+        Approved Amount: €{{ decision.approvedAmount }} <br/>
         Approved Period: {{ decision.approvedPeriod }} months
       </div>
     </div>
@@ -40,18 +47,45 @@ export default {
       loanApplication: {
         personalCode: '',
         loanAmount: null,
-        loanPeriod: null,
+        loanPeriodInMonths: null,
       },
-      decision: null
+      decision: null,
+      validationErrors: []
     };
   },
   methods: {
-    submitApplication() {
-      axios.post('http://localhost:8080/api/loan/decision', this.loanApplication)
-        .then(response => {
-          this.decision = response.data;
-        })
-        .catch(error => console.error(error));
+    validateInput() {
+      this.validationErrors = [];
+
+      if (!this.loanApplication.personalCode || this.loanApplication.personalCode.length !== 11 || !/^\d+$/.test(this.loanApplication.personalCode)) {
+        this.validationErrors.push('Personal code must be exactly 11 digits long and only contain numbers.');
+      }
+      if (this.loanApplication.loanAmount < 2000 || this.loanApplication.loanAmount > 10000) {
+        this.validationErrors.push('Loan Amount must be between €2,000 and €10,000.');
+      }
+      if (this.loanApplication.loanPeriodInMonths < 12 || this.loanApplication.loanPeriodInMonths > 60) {
+        this.validationErrors.push('Loan Period must be between 12 and 60 months.');
+      }
+      return this.validationErrors.length === 0;
+  },
+  submitApplication() {
+    if (!this.validateInput()) {
+      return;
+    }
+    
+    const applicationData = {
+      ...this.loanApplication,
+      loanAmount: this.loanApplication.loanAmount * 100
+    };
+
+    axios.post('http://localhost:8080/api/loan/decision', applicationData)
+      .then(response => {
+        this.decision = response.data;
+      })
+      .catch(error => {
+        console.error(error);
+        this.validationErrors.push('An error occurred while submitting the application.');
+      });
     }
   }
 };
@@ -115,5 +149,25 @@ button:disabled {
 
 .decision-output > div {
   margin-top: 10px;
+}
+
+.error-messages {
+  background-color: #ffdddd;
+  border-left: 6px solid #f44336;
+  margin: 0 0 15px 0;
+  padding: 4px 12px;
+}
+
+.error-messages p {
+  margin: 0;
+}
+
+.error-messages ul {
+  margin: 10px 0 0 20px;
+  padding: 0;
+}
+
+.error-messages li {
+  list-style-type: disc;
 }
 </style>
