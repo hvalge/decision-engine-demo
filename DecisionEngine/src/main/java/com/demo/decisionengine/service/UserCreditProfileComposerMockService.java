@@ -28,7 +28,7 @@ public class UserCreditProfileComposerMockService {
         logger.info("Getting mock result for personalCode {}", personalCode);
         UserCreditProfileDto profile = USER_PROFILES.get(personalCode);
         if (profile == null) {
-            throw new IllegalArgumentException(String.format("No matching user credit profile mock for personal code '%s'", personalCode));
+            throw new IllegalArgumentException(String.format("No matching user credit profile   found for personal code '%s'", personalCode));
         }
         return profile;
     }

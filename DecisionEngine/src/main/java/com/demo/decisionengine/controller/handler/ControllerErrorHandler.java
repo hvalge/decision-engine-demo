@@ -26,7 +26,7 @@ public class ControllerErrorHandler {
                 .collect(Collectors.joining(", "));
 
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setMessage("Validation failed, error message: " + errorMessage);
+        errorResponse.setMessage("Validation failed: " + errorMessage);
         return errorResponse;
     }
 

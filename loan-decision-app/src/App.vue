@@ -19,14 +19,12 @@
     
     <button @click="submitApplication">Submit Application</button>
 
-    <div v-if="validationErrors.length" class="error-messages">
-      <p>Please correct the following errors:</p>
+    <div v-if="validationErrors.length" class="error-messages"> 
       <ul>
         <li v-for="error in validationErrors" :key="error">{{ error }}</li>
       </ul>
     </div>
     
-    <h2>Decision</h2>
     <div v-if="decision">
       Decision: {{ decision.decision }}
       <div v-if="decision.decision === 'APPROVED'">
@@ -58,13 +56,13 @@ export default {
       this.validationErrors = [];
 
       if (!this.loanApplication.personalCode || this.loanApplication.personalCode.length !== 11 || !/^\d+$/.test(this.loanApplication.personalCode)) {
-        this.validationErrors.push('Personal code must be exactly 11 digits long and only contain numbers.');
+        this.validationErrors.push('Personal code must be exactly 11 digits long and only contain numbers');
       }
       if (this.loanApplication.loanAmount < 2000 || this.loanApplication.loanAmount > 10000) {
-        this.validationErrors.push('Loan Amount must be between €2,000 and €10,000.');
+        this.validationErrors.push('Loan Amount must be between €2,000 and €10,000');
       }
       if (this.loanApplication.loanPeriodInMonths < 12 || this.loanApplication.loanPeriodInMonths > 60) {
-        this.validationErrors.push('Loan Period must be between 12 and 60 months.');
+        this.validationErrors.push('Loan Period must be between 12 and 60 months');
       }
       return this.validationErrors.length === 0;
   },
@@ -78,13 +76,18 @@ export default {
       loanAmount: this.loanApplication.loanAmount * 100
     };
 
-    axios.post('http://localhost:8080/api/loan/decision', applicationData)
+    const backendUrl = 'http://localhost:8081'
+    axios.post(`${backendUrl}/api/loan/decision`, applicationData)
       .then(response => {
         this.decision = response.data;
       })
       .catch(error => {
         console.error(error);
-        this.validationErrors.push('An error occurred while submitting the application.');
+        if (error.response && error.response.data && error.response.data.message) {
+          this.validationErrors.push(error.response.data.message);
+        } else {
+          this.validationErrors.push('An error occurred while submitting the application.');
+        }
       });
     }
   }

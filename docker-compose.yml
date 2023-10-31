@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ./DecisionEngine
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    restart: always
+
+  frontend:
+    build:
+      context: ./loan-decision-app
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    restart: always
